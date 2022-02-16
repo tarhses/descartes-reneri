@@ -7,7 +7,6 @@
 	<version>1.0-EXPERIMENTS</version>
     <packaging>maven-plugin</packaging>
 
-
     <name>Reneri</name>
     <url>https://github.com/STAMP-project/reneri.git</url>
 
@@ -54,29 +53,24 @@
     </distributionManagement>
 
     <properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.8</java.version>
-	</properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>11</maven.compiler.release>
+    </properties>
 
 	<build>
 		<plugins>
-
             <!-- Source version -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-				</configuration>
+				<version>3.10.0</version>
 			</plugin>
 
             <!-- Maven plugin creation -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.5</version>
+                <version>3.6.4</version>
             </plugin>
 		</plugins>
 
@@ -93,14 +87,12 @@
         </resources>
     </build>
 
-
 	<dependencies>
-
         <!-- Source code instrumentation -->
 		<dependency>
 			<groupId>fr.inria.gforge.spoon</groupId>
 			<artifactId>spoon-core</artifactId>
-			<version>7.1.0</version>
+			<version>7.6.0</version>
 		</dependency>
 
         <dependency>
@@ -153,10 +145,16 @@
         </dependency>
 
         <!-- Extreme transformations -->
+        <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest</artifactId>
+            <version>1.6.9</version>
+        </dependency>
+
 		<dependency>
 			<groupId>eu.stamp-project</groupId>
 			<artifactId>descartes</artifactId>
-			<version>1.2.5-EXPERIMENTS</version>
+			<version>1.2.6</version>
 		</dependency>
 
         <!-- Test dependencies -->
@@ -179,16 +177,5 @@
             <artifactId>mockito-all</artifactId>
             <version>1.10.19</version>
         </dependency>
-
     </dependencies>
-
-	<repositories>
-        <!-- Additional dependency for Spoon -->
-		<repository>
-			<id>inria</id>
-			<name>triskell-public-release</name>
-			<url>http://maven.inria.fr/artifactory/triskell-public-release</url>
-		</repository>
-	</repositories>
-
 </project>

@@ -1,10 +1,10 @@
 package eu.stamp_project.reneri.amplification;
 
-import com.google.gson.annotations.SerializedName;
-import javassist.CtClass;
-import javassist.CtMethod;
-
 import java.util.Objects;
+
+import com.google.gson.annotations.SerializedName;
+
+import javassist.CtMethod;
 
 public class Method {
 

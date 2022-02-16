@@ -1,7 +1,6 @@
 package eu.stamp_project.reneri.utils;
 
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 
 public class ExceptionUtils {
 

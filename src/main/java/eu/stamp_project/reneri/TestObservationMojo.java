@@ -1,33 +1,46 @@
 package eu.stamp_project.reneri;
 
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
-import eu.stamp_project.reneri.diff.BagOfValues;
+
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+
 import eu.stamp_project.reneri.diff.ObservedValueMap;
 import eu.stamp_project.reneri.instrumentation.ObserverClassProcessor;
 import eu.stamp_project.reneri.instrumentation.PointcutLocator;
 import eu.stamp_project.reneri.instrumentation.StateObserver;
 import eu.stamp_project.reneri.utils.FileUtils;
-import org.apache.maven.plugin.*;
-import org.apache.maven.plugins.annotations.*;
-import org.apache.maven.plugins.annotations.Mojo;
 import spoon.MavenLauncher;
 import spoon.reflect.CtModel;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtClass;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 @Mojo(name = "observeTests", requiresDependencyResolution = ResolutionScope.TEST)
 @Execute(phase = LifecyclePhase.COMPILE)

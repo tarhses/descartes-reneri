@@ -52,7 +52,7 @@ public class MutationInfo {
         return testClasses;
     }
 
-    public void setTestClasses(Collection<String>  testClasses) {
+    public void setTestClasses(Collection<String> testClasses) {
         this.testClasses = new HashSet<>(testClasses);
     }
 
@@ -119,7 +119,7 @@ public class MutationInfo {
         return Objects.hash(mutator, className, packageName, methodName, methodDescription);
     }
 
-    public static Set<String> guessTestClasses(Stream<String>  testCaseNames) {
+    public static Set<String> guessTestClasses(Stream<String> testCaseNames) {
         return testCaseNames
                 .map(TEST_CASE_NAME::matcher)
                 .filter(Matcher::matches)

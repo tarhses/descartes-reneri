@@ -28,9 +28,13 @@ public abstract class ReneriMojo extends AbstractMojo {
         this.project = project;
     }
 
-    protected Build getProjectBuild() { return project.getBuild(); }
+    protected Build getProjectBuild() {
+        return project.getBuild();
+    }
 
-    protected String getAbsolutePathToProject() { return project.getBasedir().getAbsolutePath(); }
+    protected String getAbsolutePathToProject() {
+        return project.getBasedir().getAbsolutePath();
+    }
 
     @Parameter(property = "ouputFolder", defaultValue = "${project.build.directory}/reneri")
     private File outputFolder;
@@ -53,7 +57,7 @@ public abstract class ReneriMojo extends AbstractMojo {
     //TODO: Need to represent locations as a Java class see comment below
     protected MutationInfo loadMutationFromDir(Gson gson, Path directory) throws MojoExecutionException {
         Path pathToMutationDetails = directory.resolve("mutation.json");
-        try(FileReader reader = new FileReader(pathToMutationDetails.toFile())) {
+        try (FileReader reader = new FileReader(pathToMutationDetails.toFile())) {
             //TODO: Consider a GSON type adapted and a unified way to present things
             JsonObject mutationInfo = gson.fromJson(reader, JsonObject.class);
             return new MutationInfo(

@@ -1,12 +1,7 @@
 package eu.stamp_project.reneri;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import eu.stamp_project.reneri.diff.BagOfValues;
-import eu.stamp_project.reneri.diff.DiffOnValues;
-import eu.stamp_project.reneri.diff.ObservedValueMap;
-import eu.stamp_project.reneri.observations.Observation;
-import org.apache.maven.plugin.MojoExecutionException;
+import static eu.stamp_project.reneri.utils.ExceptionUtils.propagate;
+import static eu.stamp_project.reneri.utils.FileUtils.getChildrenDirectories;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,12 +9,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static eu.stamp_project.reneri.utils.ExceptionUtils.propagate;
-import static eu.stamp_project.reneri.utils.FileUtils.getChildrenDirectories;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.apache.maven.plugin.MojoExecutionException;
+
+import eu.stamp_project.reneri.diff.DiffOnValues;
+import eu.stamp_project.reneri.diff.ObservedValueMap;
+import eu.stamp_project.reneri.observations.Observation;
 
 public abstract class AbstractDiffMojo extends ReneriMojo {
 

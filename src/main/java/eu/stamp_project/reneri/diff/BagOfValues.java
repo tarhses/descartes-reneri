@@ -5,7 +5,6 @@ import eu.stamp_project.reneri.observations.ObservedValue;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 public class BagOfValues {

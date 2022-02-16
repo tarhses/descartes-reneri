@@ -1,12 +1,32 @@
 package eu.stamp_project.reneri;
 
-import com.google.gson.*;
-import eu.stamp_project.mutationtest.descartes.codegeneration.MutationClassAdapter;
-import eu.stamp_project.reneri.diff.BagOfValues;
-import eu.stamp_project.reneri.diff.DiffOnValues;
-import eu.stamp_project.reneri.diff.ObservedValueMap;
-import eu.stamp_project.reneri.observations.Observation;
-import eu.stamp_project.reneri.utils.FileUtils;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
@@ -18,32 +38,15 @@ import org.apache.maven.plugin.version.PluginVersionResolver;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.pitest.mutationtest.engine.Location;
 import org.pitest.mutationtest.engine.MutationIdentifier;
 import org.pitest.reloc.asm.ClassReader;
 import org.pitest.reloc.asm.ClassWriter;
+
+import eu.stamp_project.mutationtest.descartes.codegeneration.MutationClassAdapter;
+import eu.stamp_project.reneri.diff.ObservedValueMap;
+import eu.stamp_project.reneri.utils.FileUtils;
 import spoon.MavenLauncher;
 import spoon.reflect.declaration.CtClass;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static eu.stamp_project.reneri.utils.ExceptionUtils.propagate;
-import static eu.stamp_project.reneri.utils.FileUtils.getChildrenDirectories;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
 
 public abstract class AbstractObservationMojo extends AbstractDiffMojo {
 

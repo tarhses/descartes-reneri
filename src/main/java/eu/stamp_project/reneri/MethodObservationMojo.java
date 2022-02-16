@@ -1,24 +1,5 @@
 package eu.stamp_project.reneri;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import eu.stamp_project.reneri.diff.BagOfValues;
-import eu.stamp_project.reneri.diff.ObservedValueMap;
-import eu.stamp_project.reneri.instrumentation.StateObserver;
-import eu.stamp_project.reneri.utils.FileUtils;
-import javassist.*;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.*;
-import org.pitest.classinfo.ClassName;
-import org.pitest.mutationtest.engine.Location;
-import org.pitest.mutationtest.engine.MethodName;
-import org.pitest.mutationtest.engine.MutationIdentifier;
-import spoon.MavenLauncher;
-import spoon.reflect.CtModel;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -27,9 +8,33 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+
+import eu.stamp_project.reneri.diff.ObservedValueMap;
+import eu.stamp_project.reneri.instrumentation.StateObserver;
+import eu.stamp_project.reneri.utils.FileUtils;
+import javassist.ByteArrayClassPath;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.NotFoundException;
+import spoon.MavenLauncher;
+import spoon.reflect.CtModel;
 
 
 @Mojo(name = "observeMethods", requiresDependencyResolution =  ResolutionScope.TEST)

@@ -1,7 +1,6 @@
 package eu.stamp_project.reneri.datastructures;
 
 import java.util.HashMap;
-import java.util.Optional;
 
 public class Trie<T> {
 
@@ -10,8 +9,6 @@ public class Trie<T> {
         public HashMap<String, Node> children = new HashMap<>();
 
         public T data;
-
-        public String path;
 
         public Node next(String fragment) {
             return children.getOrDefault(fragment, null);

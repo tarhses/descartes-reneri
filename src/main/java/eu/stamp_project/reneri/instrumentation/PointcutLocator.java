@@ -1,6 +1,8 @@
 package eu.stamp_project.reneri.instrumentation;
 
-import eu.stamp_project.reneri.datastructures.Trie;
+import java.util.HashMap;
+import java.util.Map;
+
 import spoon.processing.AbstractProcessor;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtExpression;
@@ -8,9 +10,6 @@ import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtMethod;
 import spoon.support.visitor.ProcessingVisitor;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class PointcutLocator extends AbstractProcessor<CtClass<?>> {
 

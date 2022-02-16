@@ -1,17 +1,26 @@
 package eu.stamp_project.reneri.instrumentation;
 
-import eu.stamp_project.reneri.TestClassFinder;
-import spoon.reflect.code.*;
-import spoon.reflect.declaration.*;
-import spoon.reflect.factory.Factory;
-import spoon.reflect.factory.TypeFactory;
-import spoon.reflect.reference.CtArrayTypeReference;
-import spoon.reflect.reference.CtIntersectionTypeReference;
-import spoon.reflect.reference.CtTypeReference;
-import spoon.reflect.visitor.PrettyPrinter;
-import spoon.support.visitor.ProcessingVisitor;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import java.util.*;
+import eu.stamp_project.reneri.TestClassFinder;
+import spoon.reflect.code.CtBlock;
+import spoon.reflect.code.CtCatch;
+import spoon.reflect.code.CtCatchVariable;
+import spoon.reflect.code.CtExpression;
+import spoon.reflect.code.CtFieldRead;
+import spoon.reflect.code.CtInvocation;
+import spoon.reflect.code.CtLiteral;
+import spoon.reflect.code.CtTypeAccess;
+import spoon.reflect.code.CtVariableAccess;
+import spoon.reflect.declaration.CtAnnotation;
+import spoon.reflect.declaration.CtMethod;
+import spoon.reflect.declaration.CtType;
+import spoon.reflect.factory.Factory;
+import spoon.reflect.reference.CtArrayTypeReference;
+import spoon.reflect.reference.CtTypeReference;
+import spoon.support.visitor.ProcessingVisitor;
 
 
 public class ObservationAttacherProcessor extends ExpressionProcessor {

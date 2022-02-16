@@ -1,11 +1,13 @@
 package eu.stamp_project.reneri.testutils;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
 import org.hamcrest.Description;
-
 import org.hamcrest.TypeSafeMatcher;
-
-import java.util.*;
-import java.util.stream.Collector;
 
 public class SameSetMatcher<T> extends TypeSafeMatcher<Set<T>> {
 

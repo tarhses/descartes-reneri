@@ -1,14 +1,12 @@
 package eu.stamp_project.reneri;
 
-import org.junit.Test;
-import spoon.Launcher;
-import spoon.reflect.CtModel;
-import spoon.reflect.declaration.CtClass;
-
-import java.util.Optional;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import spoon.Launcher;
+import spoon.reflect.declaration.CtClass;
 
 public class TestClassFinderTest {
     @Test

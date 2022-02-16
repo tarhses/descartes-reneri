@@ -1,7 +1,5 @@
 package eu.stamp_project.reneri;
 
-import org.pitest.mutationtest.engine.MutationIdentifier;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
