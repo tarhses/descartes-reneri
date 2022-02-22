@@ -8,3 +8,5 @@
 log/
 target/
 .vscode/
+venv/
+__pycache__/
