@@ -1,0 +1,4 @@
+Jinja2==3.0.3
+lxml==4.8.0
+MarkupSafe==2.1.0
+parsy==1.4.0
