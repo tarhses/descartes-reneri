@@ -73,6 +73,7 @@ env.filters["method_link"] = method_link
 env.filters["test_case_link"] = test_case_link
 env.filters["location_link"] = location_link
 env.filters["describe"] = describe
+env.filters["ordinal"] = ordinal
 
 template = env.get_template("report_en.html.j2")
 
