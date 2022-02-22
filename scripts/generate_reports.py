@@ -64,7 +64,7 @@ def ordinal(value):
 
 
 env = jinja2.Environment(
-    loader=jinja2.loaders.PackageLoader("generate"),
+    loader=jinja2.loaders.PackageLoader("generate_reports"),
     autoescape=jinja2.select_autoescape(),
     trim_blocks=True,
     lstrip_blocks=True,
@@ -200,6 +200,7 @@ def get_hints(hint_folder, test_cases, method_locations):
             "hint": hint,
             "diff": concrete_diff,
         }
+
 
 def load_diffs(hint_folder):
     try:
