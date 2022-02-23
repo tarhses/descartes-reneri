@@ -3,6 +3,8 @@
 import json
 import os
 import re
+import shutil
+import subprocess
 from glob import glob
 
 import jinja2
@@ -80,6 +82,7 @@ template = env.get_template("report_en.html.j2")
 
 # Main
 def main():
+    run_reneri()
     print("""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rapport</title></head><body>""")
     test_cases = load_test_cases("target/mutations.json")
     method_locations = load_method_locations("target/mutations.xml")
@@ -88,6 +91,22 @@ def main():
         print(generate_readable_report(hint_folder, test_cases, method_locations))
         print("""<hr>""")
     print("""</body></html>""")
+
+
+def run_reneri():
+    subprocess.run(["mvn",
+        "test-compile",
+        "org.pitest:pitest-maven:mutationCoverage"])
+
+    report_name = sorted(os.listdir("target/pit-reports"))[-1]
+    report_path = os.path.join("target/pit-reports", report_name)
+    for name in ["methods.json", "mutations.json", "mutations.xml"]:
+        shutil.copy2(os.path.join(report_path, name), "target")
+
+    subprocess.run(["mvn",
+        "eu.stamp-project:reneri:observeMethods",
+        "eu.stamp-project:reneri:observeTests",
+        "eu.stamp-project:reneri:hints"])
 
 
 def load_test_cases(path):
