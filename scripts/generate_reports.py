@@ -82,7 +82,7 @@ template = env.get_template("report_en.html.j2")
 
 # Main
 def main():
-    #run_reneri()
+    run_reneri()
     test_cases = load_test_cases("target/mutations.json")
     method_locations = load_method_locations("target/mutations.xml")
     hints = []
