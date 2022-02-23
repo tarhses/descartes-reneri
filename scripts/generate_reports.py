@@ -82,15 +82,14 @@ template = env.get_template("report_en.html.j2")
 
 # Main
 def main():
-    run_reneri()
-    print("""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rapport</title></head><body>""")
+    #run_reneri()
     test_cases = load_test_cases("target/mutations.json")
     method_locations = load_method_locations("target/mutations.xml")
+    hints = []
     for hint_file in find_hints():
         hint_folder = os.path.dirname(hint_file)
-        print(generate_readable_report(hint_folder, test_cases, method_locations))
-        print("""<hr>""")
-    print("""</body></html>""")
+        hints.extend(get_hints(hint_folder, test_cases, method_locations))
+    print(generate_readable_report(hints))
 
 
 def run_reneri():
@@ -164,9 +163,8 @@ def find_hints():
     return a + b
 
 
-def generate_readable_report(hint_folder, test_cases, method_locations):
-    for info in get_hints(hint_folder, test_cases, method_locations):
-        return template.render(info)
+def generate_readable_report(hints):
+    return template.render(hints=hints)
 
 
 def get_hints(hint_folder, test_cases, method_locations):
@@ -174,18 +172,13 @@ def get_hints(hint_folder, test_cases, method_locations):
         mutation_data = json.load(file)
     with open(os.path.join(hint_folder, "hints.json"), "r") as file:
         hint_data = json.load(file)
-    diffs = load_diffs(hint_folder)
-    diffs_list = list(diffs.values())
 
     if not isinstance(hint_data, list):
         hint_data = [hint_data]
-
-    def method_name(entry):
-        class_ = entry["class"]
-        method = entry["method"]
-        signature = entry["desc"]
-        return f"{class_}.{method}{signature}"
     
+    diffs = load_diffs(hint_folder)
+    diffs_list = list(diffs.values())
+
     for item in hint_data:
         type_ = item["hint-type"]
         accessors = item.get("accessors")
@@ -250,6 +243,13 @@ def mutated_method_is_accessible(mutation_data, targets):
 
 def is_void(signature):
     return signature.endswith("V")
+
+
+def method_name(entry):
+    class_ = entry["class"]
+    method = entry["method"]
+    signature = entry["desc"]
+    return f"{class_}.{method}{signature}"
 
 
 def mutation_id2(mutation):

@@ -1,0 +1,160 @@
+  <p class="issue">
+    The body of the method {{ mutation|method_link }} was
+{% if mutation.mutator == 'void' %}
+    removed
+{% else %}
+    replaced by
+  {% if mutation.mutator == 'empty'%}
+    a single <code>return</code> producing an empty array
+  {% else %}
+    <code>return {{ mutation.mutator }};</code>
+  {% endif %}
+{% endif %}
+    yet,
+{% if mutation.tests|length == 1 %}
+    {{ mutation.tests[0]|test_case_link }} did not fail.
+{% else %}
+    none of the following tests failed:
+    <ul>
+  {% for test in mutation.tests %}
+      <li>{{ test|test_case_link }}</li>
+  {% endfor %}
+    </ul>
+{% endif %}
+  </p>
+{% if hint.type == 'execution' %}
+  <p class="diagnosis">
+    When the transformed method is executed, there is no difference with the
+    execution using the original source code.
+  </p>
+  <p class="suggestion">
+  {% if mutation.is_void %}
+    This could mean that the method is not producing any side effect.
+    Consider creating a modified variant of the
+    {% if mutation.tests|length == 1 %}
+    test mentioned
+    {% else %}
+    tests listed
+    {% endif %}
+    above where the side effects can be observed.
+  {% else %}
+    This could mean that the original method always returns the same value.
+    Consider creating a modified variant of the
+    {% if mutation.tests|length == 1 %}
+    test mentioned
+    {% else %}
+    tests listed
+    {% endif %}
+    above to make the method produce a different value.
+  {% endif %}
+  </p>
+{% elif hint.type == 'observation' %}
+  {% set location = hint.location %}
+  <p class="diagnosis">
+    It is possible to observe a difference between the program state when the
+    transformed method is executed and the program state when the original
+    method is executed.
+    This difference can be observed in {{ location|location_link }} from
+    the expression returning a value of type <code>{{ location.type }}</code> located
+  {% if location.from.line == location.to.line %}
+    in line {{ location.from.line }} from column {{ location.from.column }}
+    to column {{ location.to.column }}.
+  {% else %}
+    from line {{ location.from.line }} and column
+    {{ location.from.column }} to line {{ location.to.line }}.
+  {% endif %}
+  {% if not diff %}
+  </p>
+  {% else %}
+    {% set pointcut = diff.pointcut %}
+    When the transformation is applied to the method, it was observed that
+    {% if pointcut.exception %}
+    the exception thrown in the test
+    {% else %}
+      {% if pointcut.size %}
+    the size of
+      {% elif pointcut.length %}
+    the length of
+      {% endif %}
+      {% if pointcut.field %}
+    the field <code>{{ pointcut.field }}</code> of
+      {% endif %}
+    {% endif %}
+    the value obtained from the expression was {{ diff.observed|describe }}
+    but should have been {{ diff.expected|describe }}.
+  </p>
+  <p class="suggestion">
+    {% if pointcut.field and not hint|attr("targets") %}
+    Consider modifying the test to verify the value of
+    <code>{{ pointcut.field }}</code> in the result of the expression.
+    {% endif %}
+    {% if hint.targets %}
+    Consider verifying the result or side effects of one of the following
+    methods invoked for the result of the expression:
+    <ul>
+      {% for method in hint.targets %}
+      <li><code>{{ method }}</code></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </p>
+  {% endif %}
+{% elif hint.type == 'infection' %}
+  <p class="diagnosis">
+    It is possible to observe a difference between the program state when the
+    transformed method is executed and the program state when the original
+    method is executed. This difference is observed right after the method
+    invocation but not from from the top level code of any test.
+  {% if diff %}
+    {% set pointcut = diff.pointcut %}
+    For one invocation of <code>{{ mutation.method }}</code>, it was observed that
+    {% if pointcut.size %}
+    the size of
+    {% elif pointcut.length %}
+    the length of
+    {% endif %}
+    {% if pointcut.field %}
+    the field <code>{{ pointcut.field }}</code> of
+    {% endif %}
+    {% if pointcut.result %}
+    the return value
+    {% elif pointcut.that %}
+    the instance in which the method was called
+    {% else %}
+    {{ pointcut.argument + 1|ordinal }} argument
+    {% endif %}
+    was {{ diff.observed|describe }} but should have been {{ diff.expected|describe }}.
+  {% endif %}
+  </p>
+  <p class="suggestion">
+    To solve this problem you may consider to:
+    <ul>
+  {% if hint.direct_access %}
+      <li>
+        Create a new test case that targets the result of <code>{{ mutation.method }}</code>
+        directly, since it could be accessed from a test class.
+      </li>
+  {% else %}
+      <li>
+        Create a new test case that targets the result of one of the following methods:
+        <ul>
+    {% for method in hint.targets %}
+          <li>{{ method }}</li>
+    {% endfor %}
+        </ul>
+        these are the closest accessible methods that can be used to trigger the
+        execution of <code>{{ mutation.method }}</code>.
+      </li>
+      <li>
+        Check if the effects of the method are visible from outside the class.
+        Otherwise you may consider to add a visible method (maybe a getter) that
+        could be used to observe the effects of <code>{{ mutation.method }}</code>.
+      </li>
+  {% endif %}
+      <li>
+        Refactor the code that uses this method. Maybe the method is not actually
+        needed in the context that it is being used.
+      </li>
+    </ul>
+  </p>
+{% endif %}
