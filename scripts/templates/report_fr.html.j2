@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Report</title>
+  <title>Rapport</title>
   <style>{% include "style.css" %}</style>
 </head>
 
 <body>
 {% for h in hints %}
   {% set mutation, hint, diff = h.mutation, h.hint, h.diff %}
-  {% include "hint_en.html.j2" %}
+  {% include "hint_fr.html.j2" %}
   {% if not loop.last %}
   <hr>
   {% endif %}
