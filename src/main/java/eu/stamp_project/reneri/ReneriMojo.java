@@ -51,14 +51,14 @@ public abstract class ReneriMojo extends AbstractMojo {
         Path folderPath = outputFolder.toPath().resolve(Paths.get(directory, more)).toAbsolutePath();
         Files.createDirectories(folderPath);
 
-        return  folderPath;
+        return folderPath;
     }
 
-    //TODO: Need to represent locations as a Java class see comment below
+    // TODO: Need to represent locations as a Java class see comment below
     protected MutationInfo loadMutationFromDir(Gson gson, Path directory) throws MojoExecutionException {
         Path pathToMutationDetails = directory.resolve("mutation.json");
         try (FileReader reader = new FileReader(pathToMutationDetails.toFile())) {
-            //TODO: Consider a GSON type adapted and a unified way to present things
+            // TODO: Consider a GSON type adapted and a unified way to present things
             JsonObject mutationInfo = gson.fromJson(reader, JsonObject.class);
             return new MutationInfo(
                     mutationInfo.getAsJsonPrimitive("mutator").getAsString(),
@@ -66,11 +66,8 @@ public abstract class ReneriMojo extends AbstractMojo {
                     mutationInfo.getAsJsonPrimitive("package").getAsString(),
                     mutationInfo.getAsJsonPrimitive("method").getAsString(),
                     mutationInfo.getAsJsonPrimitive("description").getAsString());
-        }
-        catch (IOException exc) {
+        } catch (IOException exc) {
             throw new MojoExecutionException("Could not read mutation details from " + directory.toString(), exc);
         }
     }
-
-
 }
