@@ -12,7 +12,8 @@
 {% endif %}
     yet,
 {% if mutation.tests|length == 1 %}
-    {{ mutation.tests[0]|test_case_link }} did not fail.
+    {# TODO: test_case_link crashes, fix it #}
+    {{ mutation.tests[0] }} did not fail.
 {% else %}
     none of the following tests failed:
     <ul>

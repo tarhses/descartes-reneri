@@ -18,8 +18,8 @@
     Cependant,
     {# yet, #}
 {% if mutation.tests|length == 1 %}
-    le test {{ mutation.tests[0]|test_case_link }} n'a pas échoué.
-    {# {{ mutation.tests[0]|test_case_link }} did not fail. #}
+    le test {{ mutation.tests[0] }} n'a pas échoué.
+    {# {{ mutation.tests[0] }} did not fail. #}
 {% else %}
     aucun des tests suivants n'a échoué&nbsp;:
     {# none of the following tests failed: #}
