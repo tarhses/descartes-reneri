@@ -10,4 +10,19 @@ code {
   color: white;
   background-color: #424242;
   border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.diagnosis::before, .suggestion::before {
+  margin: 0 6pt;
+  float : left;
+  font-size: 2.2rem;
+}
+
+.diagnosis::before {
+  content: "🩺";
+}
+
+.suggestion::before {
+  content: "💡";
 }
