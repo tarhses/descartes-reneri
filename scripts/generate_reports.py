@@ -11,10 +11,6 @@ import jinja2
 from lxml import etree
 
 # Regular expressions
-TEST_CASE_PATTERN = re.compile(
-    r"^(?P<class>.+)\.(?P<method>[^\[]+)((?P<params>\[.*\])?\((?P=class)?\))?$")
-TEST_CLASS_PATTERN = re.compile(
-    r"^(?P<class>.+)\.(?P=class)$")
 POINTCUT_PATTERN = re.compile(r"""
     (?P<class>[^\|]+)\|
     (?P<method>[^\|]+)\|
@@ -29,25 +25,24 @@ POINTCUT_PATTERN = re.compile(r"""
 
 # Templating
 def method_link(mutation):
-    class_ = mutation["full_class_name"]
+    class_ = mutation["class"]
     method = mutation["method"]
     signature = mutation["description"]
-    return f"""<a href="#">{class_}.{method}{signature}</a>"""
+    return f"""<code>{class_}.{method}{signature}</code>"""
+
+
+def trim_package(s: str):
+    match = re.search(r"\w+\.\w+\(.*$", s)
+    return f"""<code>{match.group()}</code>"""
 
 
 def test_case_link(test_case):
-    class_ = test_case["class"]
-    method = test_case.get("method")
-    if method:
-        name = f"{class_}.{method}"
-    else:
-        name = class_
-    return f"""<a href="#">{name}</a>"""
+    return f"""<code>{test_case}</code>"""
 
 
 def location_link(location):
     path = location["file"]
-    return f"""<a href="#"><code>{os.path.basename(path)}</code></a>"""
+    return f"""<code>{os.path.basename(path)}</code>"""
 
 
 def describe(value):
@@ -72,6 +67,7 @@ env = jinja2.Environment(
     lstrip_blocks=True,
 )
 env.filters["method_link"] = method_link
+env.filters["trim_package"] = trim_package
 env.filters["test_case_link"] = test_case_link
 env.filters["location_link"] = location_link
 env.filters["describe"] = describe
@@ -118,19 +114,9 @@ def load_test_cases(path):
         tests = []
         result[mutation_id1(mutation)] = tests
         for test in mutation["tests"]["ordered"]:
-            match = match_test_case(test)
-            if not match:
-                tests.append({"class": test})
-            else:
-                tests.append({
-                    "class": match.group("class"),
-                    "method": match.group("method"),
-                })
+            match = re.search(r"\.(?P<test>\w+\.\w+)\(", test)
+            tests.append(match.group("test"))
     return result
-
-
-def match_test_case(s):
-    return TEST_CLASS_PATTERN.match(s) or TEST_CASE_PATTERN.match(s)
 
 
 def mutation_id1(mutation):
@@ -198,16 +184,17 @@ def get_hints(hint_folder, test_cases, method_locations):
             concrete_diff = diffs.get(pointcut, None)
         if diffs_list:
             concrete_diff = diffs_list[0]
-        
+
         yield {
             "mutation": {
                 "mutator": mutation_data["mutator"],
+                "class": mutation_data['class'],
                 "full_class_name": f"{mutation_data['package']}.{mutation_data['class']}",
                 "method": mutation_data["method"],
                 "description": mutation_data["description"],
                 "signature": mutation_data["description"],
                 "is_void": is_void(mutation_data["description"]),
-                "tests": test_cases.get(mutation_id2(mutation_data), mutation_data["tests"]),
+                "tests": test_cases[mutation_id2(mutation_data)],
                 "line": method_locations.get(f"{mutation_data['package']}.{mutation_data['class']}.{mutation_data['method']}{mutation_data['description']}", None)
             },
             "hint": hint,
