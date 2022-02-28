@@ -85,7 +85,9 @@ def main():
     for hint_file in find_hints():
         hint_folder = os.path.dirname(hint_file)
         hints.extend(get_hints(hint_folder, test_cases, method_locations))
-    print(generate_readable_report(hints))
+    report = generate_readable_report(hints)
+    with open("report.html", "w") as file:
+        file.write(report)
 
 
 def run_reneri():
