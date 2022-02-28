@@ -1,29 +1,21 @@
   <h2>{{ mutation|method_link }}</h2>
   <p class="issue">
     Le corps de la méthode {{ mutation|method_link }} a été
-    {# The body of the method {{ mutation|method_link }} was #}
 {% if mutation.mutator == 'void' %}
-    supprimé
-    {# removed #}
+    supprimé.
 {% else %}
     remplacé par
-    {# replaced by #}
   {% if mutation.mutator == 'empty'%}
     un <code>return</code> renvoyant une liste vide.
-    {# a single <code>return</code> producing an empty array #}
   {% else %}
     <code>return {{ mutation.mutator }};</code>.
-    {# <code>return {{ mutation.mutator }};</code> #}
   {% endif %}
 {% endif %}
     Pourtant,
-    {# yet, #}
 {% if mutation.tests|length == 1 %}
     le test {{ mutation.tests[0]|test_case_link }} n'a pas échoué.
-    {# {{ mutation.tests[0] }} did not fail. #}
 {% else %}
     aucun des tests suivants n'a échoué&nbsp;:
-    {# none of the following tests failed: #}
     <ul>
   {% for test in mutation.tests %}
       <li>{{ test|test_case_link }}</li>
@@ -35,27 +27,18 @@
   <p class="diagnosis">
     Exécuter les tests avec la méthode modifiée ou avec la méthode originale ne
     provoque aucune différence observable dans l'état du programme.
-    {# When the transformed method is executed, there is no difference with the
-    execution using the original source code. #}
   </p>
   <p class="suggestion">
-    {# This could mean that the method is not producing any side effect. #}
-    {# This could mean that the original method always returns the same value. #}
     Ainsi, une solution pourrait être de créer une variante
-    {# Consider creating a modified variant of the #}
   {% if mutation.tests|length == 1 %}
     du test en question
-    {# test mentioned #}
   {% else %}
     des tests listés ci-dessus
-    {# tests listed #}
   {% endif %}
   {% if mutation.is_void %}
     afin de rendre les effets de bord observables.
-    {# above where the side effects can be observed. #}
   {% else %}
     dans laquelle la méthode renverrait une valeur différente.
-    {# above to make the method produce a different value. #}
   {% endif %}
   </p>
 {% elif hint.type == 'observation' %}
@@ -63,60 +46,40 @@
   <p class="diagnosis">
     Il est possible d'observer une différence dans l'état du programme selon
     que l'on utilise la méthode originale ou la méthode modifiée.
-    {# It is possible to observe a difference between the program state when the
-    transformed method is executed and the program state when the original
-    method is executed. #}
     Cette différence se situe dans {{ location|location_link }}
-    {# This difference can be observed in {{ location|location_link }} #}
   {% if location.from.line == location.to.line %}
     à la ligne {{ location.from.line }}
-    {# in line {{ location.from.line }} from column {{ location.from.column }}
-    to column {{ location.to.column }}. #}
   {% else %}
     aux lignes {{ location.from.line }} à {{ location.to.line }}
-    {# from line {{ location.from.line }} and column
-    {{ location.from.column }} to line {{ location.to.line }}. #}
   {% endif %}
     dans une expression de type <code>{{ location.type }}</code>.
-    {# from the expression returning a value of type <code>{{ location.type }}</code> located #}
   {% if not diff %}
   </p>
   {% else %}
     {% set pointcut = diff.pointcut %}
     En effet, la valeur
-    {# When the transformation is applied to the method, it was observed that #}
     {% if pointcut.exception %}
     de l'exception
-    {# the exception thrown in the test #}
     {% else %}
       {% if pointcut.size %}
     de la longueur (<code>.size()</code>)
-    {# the size of #}
       {% elif pointcut.length %}
     de la taille (<code>.length</code>)
-    {# the length of #}
       {% endif %}
       {% if pointcut.field %}
     de la variable d'instance <code>{{ pointcut.field }}</code>
-    {# the field <code>{{ pointcut.field }}</code> of #}
       {% endif %}
     {% endif %}
     était {{ diff.expected|describe }} avec la méthode orignale, alors qu'elle
-    vaut {{ diff.expected|describe }} avec la méthode modifiée.
-    {# the value obtained from the expression was {{ diff.observed|describe }}
-    but should have been {{ diff.expected|describe }}. #}
+    vaut {{ diff.observed|describe }} avec la méthode modifiée.
   </p>
   <p class="suggestion">
     {% if pointcut.field and not hint|attr("targets") %}
     Ainsi, une solution pourrait être d'ajouter une assertion ciblant
     <code>{{ pointcut.field }}</code>.
-    {# Consider modifying the test to verify the value of
-    <code>{{ pointcut.field }}</code> in the result of the expression. #}
     {% endif %}
     {% if hint.targets %}
     Voici la liste des méthodes que vous pourriez appeler pour ce faire&nbsp;:
-    {# Consider verifying the result or side effects of one of the following
-    methods invoked for the result of the expression: #}
     <ul>
       {% for method in hint.targets %}
       <li>{{ method|trim_package }}</li>
@@ -129,69 +92,43 @@
   <p class="diagnosis">
     Il est possible d'observer une différence dans l'état du programme selon
     que l'on utilise la méthode originale ou la méthode modifiée.
-    {# It is possible to observe a difference between the program state when the
-    transformed method is executed and the program state when the original
-    method is executed. #}
     Cette différence est observable dans une méthode mais pas dans les tests
     actuels.
-    {# This difference is observed right after the method
-    invocation but not from from the top level code of any test. #}
   {% if diff %}
     {% set pointcut = diff.pointcut %}
     En effet, dans un appel de <code>{{ mutation.method }}</code>,
-    {# For one invocation of <code>{{ mutation.method }}</code>, it was observed that #}
     {% if pointcut.size %}
     la taille (<code>.size()</code>) de
-    {# the size of #}
     {% elif pointcut.length %}
     la longueur (<code>.length</code>) de
-    {# the length of #}
     {% endif %}
     {% if pointcut.field %}
     la variable d'instance <code>{{ pointcut.field }}</code> de
-    {# the field <code>{{ pointcut.field }}</code> of #}
     {% endif %}
     {% if pointcut.result %}
     la valeur de retour
-    {# the return value #}
     {% elif pointcut.that %}
     l'objet sur lequel la méthode est appelée
-    {# the instance in which the method was called #}
     {% else %}
     l'argument n&deg;{{ pointcut.argument + 1 }}
-    {# {{ pointcut.argument + 1|ordinal }} argument #}
     {% endif %}
     était {{ diff.expected|describe }} avec la méthode originale, alors qu'elle
     vaut {{ diff.observed|describe }} avec la méthode modifiée.
-    {# was {{ diff.observed|describe }} but should have been {{ diff.expected|describe }}. #}
   {% endif %}
   </p>
   <p class="suggestion">
     Ainsi, une solution pourrait être
-    {# To solve this problem you may consider to: #}
   {% if hint.direct_access %}
     d'ajouter un test qui cible directement le résultat de
     <code>{{ mutation.method }}</code>.
-    {# Create a new test case that targets the result of <code>{{ mutation.method }}</code>
-    directly, since it could be accessed from a test class. #}
   {% else %}
     d'ajouter un test qui cible le résultat d'une des méthodes suivantes, car
     elles appellent indirectement <code>{{ mutation.method }}</code>&nbsp;:
-    {# Create a new test case that targets the result of one of the following methods: #}
-    {# these are the closest accessible methods that can be used to trigger the
-    execution of <code>{{ mutation.method }}</code>. #}
     <ul>
     {% for method in hint.targets %}
       <li>{{ method }}</li>
     {% endfor %}
     </ul>
-    {# Check if the effects of the method are visible from outside the class.
-    Otherwise you may consider to add a visible method (maybe a getter) that
-    could be used to observe the effects of <code>{{ mutation.method }}</code>. #}
-    {# --> Students can't refactor the code. #}
   {% endif %}
-    {# Refactor the code that uses this method. Maybe the method is not actually
-    needed in the context that it is being used. #}
-    {# --> Students can't refactor the code. #}
   </p>
 {% endif %}
