@@ -6,11 +6,105 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Rapport</title>
   <style>
-{% include "style.css" %}
+    body {
+      margin: auto;
+      max-width: 600px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-size: 13pt;
+    }
+
+    code {
+      padding: 0 4px;
+      color: white;
+      background-color: #424242;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    .control {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card {
+      margin: 8pt 0;
+      padding: 8pt;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .diagnosis::before, .suggestion::before {
+      margin: 0 6pt;
+      float : left;
+      font-size: 2.2rem;
+    }
+
+    .diagnosis::before {
+      content: "🩺";
+    }
+
+    .suggestion::before {
+      content: "💡";
+    }
   </style>
+  <script type="module">
+    const previousEl = document.querySelector('#previous')
+    const indexEl = document.querySelector('#index')
+    const nextEl = document.querySelector('#next')
+    const cardEls = Array.from(document.querySelectorAll('.card:not(:first-child)'))
+
+    let index = 0
+    update()
+
+    document.querySelector('#next').addEventListener('click', () => {
+      index++
+      update()
+    })
+
+    document.querySelector('#previous').addEventListener('click', () => {
+      index--
+      update()
+    })
+
+    function update() {
+      indexEl.textContent = `${index + 1}/${cardEls.length}`
+
+      if (index <= 0) {
+        previousEl.setAttribute('disabled', true)
+      } else {
+        previousEl.removeAttribute('disabled')
+      }
+
+      if (index >= cardEls.length - 1) {
+        nextEl.setAttribute('disabled', true)
+      } else {
+        nextEl.removeAttribute('disabled')
+      }
+
+      for (let i = 0; i < cardEls.length; i++) {
+        const card = cardEls[i]
+        if (i === index) {
+          card.classList.remove('hidden')
+        } else {
+          card.classList.add('hidden')
+        }
+      }
+    }
+  </script>
 </head>
 
 <body>
+  <div class="control card">
+    <button id="previous">🠔</button>
+    <span id="index"></span>
+    <button id="next">🠖</button>
+  </div>
 {% for method in uncovered %}
   <div class="card">
   {% include "uncovered_fr.html.j2" %}
