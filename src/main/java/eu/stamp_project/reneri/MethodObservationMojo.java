@@ -2,6 +2,7 @@ package eu.stamp_project.reneri;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -23,6 +25,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jdt.core.dom.Modifier;
 
 import eu.stamp_project.reneri.diff.ObservedValueMap;
 import eu.stamp_project.reneri.instrumentation.StateObserver;
@@ -59,12 +62,19 @@ public class MethodObservationMojo extends AbstractObservationMojo {
      */
     private List<MethodRecord> illTestedMethods;
 
-    private ClassPool projectClassPool;
+    /**
+     * Methods that were not covered.
+     */
+    private List<MethodRecord> uncoveredMethods;
+    
+    private ClassPool compileClassPool;
+    private ClassPool testClassPool;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         findTestClasses();
         loadMethodRecords();
+        writeUncoveredMethods();
         if (noMethodToObserve()) {
             getLog().warn("No method in the report requires observation.");
             return;
@@ -84,48 +94,75 @@ public class MethodObservationMojo extends AbstractObservationMojo {
     private void loadMethodRecords() throws MojoExecutionException {
         getLog().info("Loading method records");
         try {
-            illTestedMethods = getIllTestedMethodsFromReport();
+            loadIllTestedMethodsFromReport();
         } catch (IOException exc) {
             throw new MojoExecutionException("Could not read method report file", exc);
         }
     }
 
-    private List<MethodRecord> getIllTestedMethodsFromReport() throws IOException, MojoExecutionException {
+    private void loadIllTestedMethodsFromReport() throws IOException, MojoExecutionException {
         Gson gson = new Gson();
         FileReader fileReader = new FileReader(methodReport);
         JsonObject document = gson.fromJson(fileReader, JsonObject.class);
-        List<MethodRecord> illTestedMethods = new ArrayList<>();
+
+        illTestedMethods = new ArrayList<>();
+        uncoveredMethods = new ArrayList<>();
 
         for (JsonElement methodItem : document.getAsJsonArray("methods")) {
             JsonObject methodJsonObject = methodItem.getAsJsonObject();
             String classification = methodJsonObject.getAsJsonPrimitive("classification").getAsString();
-            if (!classification.equals("partially-tested") && !classification.equals("pseudo-tested")) {
-                continue;
-            }
-
             MethodRecord methodRecord = new MethodRecord(
                     methodJsonObject.getAsJsonPrimitive("name").getAsString(),
                     methodJsonObject.getAsJsonPrimitive("description").getAsString(),
                     methodJsonObject.getAsJsonPrimitive("class").getAsString(),
                     methodJsonObject.getAsJsonPrimitive("package").getAsString().replace('/', '.'));
 
-            for (JsonElement mutationItem : methodJsonObject.getAsJsonArray("mutations")) {
-                JsonObject mutationJsonObject = mutationItem.getAsJsonObject();
-                String mutationStatus = mutationJsonObject.getAsJsonPrimitive("status").getAsString();
-                if (!mutationStatus.equals("SURVIVED")) {
-                    continue;
-                }
-
-                MutationInfo mutationInfo = methodRecord.addMutation(
+            if (classification.equals("partially-tested") || classification.equals("pseudo-tested")) {
+                for (JsonElement mutationItem : methodJsonObject.getAsJsonArray("mutations")) {
+                    JsonObject mutationJsonObject = mutationItem.getAsJsonObject();
+                    String mutationStatus = mutationJsonObject.getAsJsonPrimitive("status").getAsString();
+                    if (!mutationStatus.equals("SURVIVED")) {
+                        continue;
+                    }
+                    
+                    MutationInfo mutationInfo = methodRecord.addMutation(
                         mutationJsonObject.getAsJsonPrimitive("mutator").getAsString(),
                         testClassesFromJsonArray(mutationJsonObject.getAsJsonArray("tests")));
-                complementTests(mutationInfo);
+                        complementTests(mutationInfo);
+                }
+
+                illTestedMethods.add(methodRecord);
+            } else if (classification.equals("not-covered")) {
+                uncoveredMethods.add(methodRecord);
             }
-
-            illTestedMethods.add(methodRecord);
         }
+    }
 
-        return illTestedMethods;
+    private void writeUncoveredMethods() throws MojoExecutionException {
+        List<MethodRecord> methods = getPublicUncoveredMethods();
+
+        Gson gson = new GsonBuilder().create();
+        try (FileWriter writer = new FileWriter(getPathTo("observations").resolve("uncovered.json").toFile())) {
+            gson.toJson(methods, writer);
+        } catch (IOException exc) {
+            throw new MojoExecutionException("Could not save uncovered methods", exc);
+        }
+    }
+
+    private List<MethodRecord> getPublicUncoveredMethods() throws MojoExecutionException {
+        List<MethodRecord> result = new ArrayList<>();
+        ClassPool pool = getCompileClassPool();
+        for (MethodRecord record : uncoveredMethods) {
+            try {
+                CtMethod method = pool.getMethod(record.getClassQualifiedName(), record.getName());
+                if (Modifier.isPublic(method.getModifiers())) {
+                    result.add(record);
+                }
+            } catch (NotFoundException exception) {
+                // Ignore
+            }
+        }
+        return result;
     }
 
     private boolean noMethodToObserve() {
@@ -210,7 +247,7 @@ public class MethodObservationMojo extends AbstractObservationMojo {
 
     private byte[] insertProbeForMethod(MethodRecord methodRecord, byte[] classBuffer) throws MojoExecutionException {
         try {
-            ClassPool transformationClassPool = new ClassPool(getProjectClassPool());
+            ClassPool transformationClassPool = new ClassPool(getTestClassPool());
             transformationClassPool.childFirstLookup = true;
             transformationClassPool.appendClassPath(new ByteArrayClassPath(methodRecord.getClassQualifiedName(), classBuffer));
 
@@ -248,13 +285,12 @@ public class MethodObservationMojo extends AbstractObservationMojo {
         executeTests(mutationObservationResults, testsExecutingMutation);
     }
 
-    private ClassPool getProjectClassPool() throws MojoExecutionException {
-        if (projectClassPool == null) {
+    private ClassPool getCompileClassPool() throws MojoExecutionException {
+        if (compileClassPool == null) {
             try {
-                projectClassPool = new ClassPool(ClassPool.getDefault());
-                for (String path : getProject().getTestClasspathElements()) {
-                    // Include dependencies in the class pool so the probe can be compiled
-                    projectClassPool.appendClassPath(path);
+                compileClassPool = new ClassPool(ClassPool.getDefault());
+                for (String path : getProject().getCompileClasspathElements()) {
+                    compileClassPool.appendClassPath(path);
                 }
             } catch (DependencyResolutionRequiredException exc) {
                 throw new MojoExecutionException("Unexpected error while resolving project's classpath", exc);
@@ -263,6 +299,23 @@ public class MethodObservationMojo extends AbstractObservationMojo {
             }
         }
 
-        return projectClassPool;
+        return compileClassPool;
+    }
+
+    private ClassPool getTestClassPool() throws MojoExecutionException {
+        if (testClassPool == null) {
+            try {
+                testClassPool = new ClassPool(ClassPool.getDefault());
+                for (String path : getProject().getTestClasspathElements()) {
+                    testClassPool.appendClassPath(path);
+                }
+            } catch (DependencyResolutionRequiredException exc) {
+                throw new MojoExecutionException("Unexpected error while resolving project's classpath", exc);
+            } catch (NotFoundException exc) {
+                throw new MojoExecutionException("Issues finding project's classpath elements", exc);
+            }
+        }
+
+        return testClassPool;
     }
 }

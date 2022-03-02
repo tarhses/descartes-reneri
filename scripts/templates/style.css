@@ -13,6 +13,13 @@ code {
   font-size: 0.9em;
 }
 
+.card {
+  margin: 8pt 0;
+  padding: 8pt;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+}
+
 .diagnosis::before, .suggestion::before {
   margin: 0 6pt;
   float : left;

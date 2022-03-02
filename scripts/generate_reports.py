@@ -10,7 +10,12 @@ from glob import glob
 import jinja2
 from lxml import etree
 
-# Regular expressions
+# Globals
+PACKAGE_WHITELIST = [
+    "be.unamur.game2048.controllers",
+    "be.unamur.game2048.models",
+]
+
 POINTCUT_PATTERN = re.compile(r"""
     (?P<class>[^\|]+)\|
     (?P<method>[^\|]+)\|
@@ -24,6 +29,13 @@ POINTCUT_PATTERN = re.compile(r"""
 
 
 # Templating
+def uncovered_link(uncovered):
+    class_ = uncovered["className"]
+    method = uncovered["name"]
+    signature = uncovered["description"]
+    return f"""<code>{class_}.{method}{signature}</code>"""
+
+
 def method_link(mutation):
     class_ = mutation["class"]
     method = mutation["method"]
@@ -66,6 +78,8 @@ env = jinja2.Environment(
     trim_blocks=True,
     lstrip_blocks=True,
 )
+
+env.filters["uncovered_link"] = uncovered_link
 env.filters["method_link"] = method_link
 env.filters["trim_package"] = trim_package
 env.filters["test_case_link"] = test_case_link
@@ -81,11 +95,12 @@ def main():
     run_reneri()
     test_cases = load_test_cases("target/mutations.json")
     method_locations = load_method_locations("target/mutations.xml")
+    uncovered = get_uncovered()
     hints = []
     for hint_file in find_hints():
         hint_folder = os.path.dirname(hint_file)
         hints.extend(get_hints(hint_folder, test_cases, method_locations))
-    report = generate_readable_report(hints)
+    report = generate_readable_report(uncovered, hints)
     with open("report.html", "w") as file:
         file.write(report)
 
@@ -98,8 +113,13 @@ def run_reneri():
     report_name = sorted(os.listdir("target/pit-reports"))[-1]
     report_path = os.path.join("target/pit-reports", report_name)
     for name in ["methods.json", "mutations.json", "mutations.xml"]:
+        try:
+            os.remove(os.path.join("target", name))
+        except FileNotFoundError:
+            pass  # ignore
         shutil.copy2(os.path.join(report_path, name), "target")
 
+    shutil.rmtree("target/reneri")
     subprocess.run(["mvn",
         "eu.stamp-project:reneri:observeMethods",
         "eu.stamp-project:reneri:observeTests",
@@ -151,23 +171,23 @@ def find_hints():
     return a + b
 
 
-def generate_readable_report(hints):
-    return template.render(hints=hints)
+def generate_readable_report(uncovered, hints):
+    return template.render(uncovered=uncovered, hints=hints)
 
 
 def get_hints(hint_folder, test_cases, method_locations):
     with open(os.path.join(hint_folder, "mutation.json"), "r") as file:
-        mutation_data = json.load(file)
+        mutations = json.load(file)
     with open(os.path.join(hint_folder, "hints.json"), "r") as file:
-        hint_data = json.load(file)
+        hints = json.load(file)
 
-    if not isinstance(hint_data, list):
-        hint_data = [hint_data]
-    
+    if not isinstance(hints, list):
+        hints = [hints]
+
     diffs = load_diffs(hint_folder)
     diffs_list = list(diffs.values())
 
-    for item in hint_data:
+    for item in hints:
         type_ = item["hint-type"]
         accessors = item.get("accessors")
         pointcut = item.get("pointcut")
@@ -175,7 +195,7 @@ def get_hints(hint_folder, test_cases, method_locations):
         hint = {"type": type_}
         if type_ == "infection":
             hint["targets"] = [method_name(entry) for entry in item["entry-points"]]
-            hint["direct_access"] = mutated_method_is_accessible(mutation_data, hint["targets"])
+            hint["direct_access"] = mutated_method_is_accessible(mutations, hint["targets"])
         if type_ == "observation":
             hint["location"] = item["location"]
         if accessors is not None:
@@ -189,15 +209,15 @@ def get_hints(hint_folder, test_cases, method_locations):
 
         yield {
             "mutation": {
-                "mutator": mutation_data["mutator"],
-                "class": mutation_data['class'],
-                "full_class_name": f"{mutation_data['package']}.{mutation_data['class']}",
-                "method": mutation_data["method"],
-                "description": mutation_data["description"],
-                "signature": mutation_data["description"],
-                "is_void": is_void(mutation_data["description"]),
-                "tests": test_cases[mutation_id2(mutation_data)],
-                "line": method_locations.get(f"{mutation_data['package']}.{mutation_data['class']}.{mutation_data['method']}{mutation_data['description']}", None)
+                "mutator": mutations["mutator"],
+                "class": mutations['class'],
+                "full_class_name": f"{mutations['package']}.{mutations['class']}",
+                "method": mutations["method"],
+                "description": mutations["description"],
+                "signature": mutations["description"],
+                "is_void": is_void(mutations["description"]),
+                "tests": test_cases.get(mutation_id2(mutations), mutations["tests"]),
+                "line": method_locations.get(f"{mutations['package']}.{mutations['class']}.{mutations['method']}{mutations['description']}", None)
             },
             "hint": hint,
             "diff": concrete_diff,
@@ -248,6 +268,12 @@ def mutation_id2(mutation):
     signature = mutation["description"]
     mutator = mutation["mutator"]
     return f"{package}.{class_}.{method}{signature}{mutator}"
+
+
+def get_uncovered():
+    with open("target/reneri/observations/uncovered.json", "r") as file:
+        methods = json.load(file)
+    return [method for method in methods if method["packageName"] in PACKAGE_WHITELIST]
 
 
 if __name__ == "__main__":
