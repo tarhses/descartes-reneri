@@ -27,39 +27,69 @@ POINTCUT_PATTERN = re.compile(r"""
     (\|(?P<field>[^\#\|]+))?
     (\|\#((?P<size>size)|(?P<length>length)))?""", re.VERBOSE)
 
+JAVA_TYPES = {
+    "B": "byte",
+    "C": "char",
+    "D": "double",
+    "F": "float",
+    "I": "int",
+    "J": "long",
+    "S": "short",
+    "Z": "boolean",
+}
+
 
 # Templating
 def uncovered_link(uncovered):
     class_ = uncovered["className"]
     method = uncovered["name"]
     signature = uncovered["description"]
-    return f"""<code>{class_}.{method}{signature}</code>"""
+    return f"""{class_}.{method}{parse_signature(signature)}"""
 
 
 def method_link(mutation):
     class_ = mutation["class"]
     method = mutation["method"]
     signature = mutation["description"]
-    return f"""<code>{class_}.{method}{signature}</code>"""
+    return f"""{class_}.{method}{parse_signature(signature)}"""
 
 
 def trim_package(s: str):
     match = re.search(r"\w+\.\w+\(.*$", s)
-    return f"""<code>{match.group()}</code>"""
+    return f"""{match.group()}"""
+
+
+def parse_signature(s: str):
+    i = s.find("(") + 1
+    name = s[:i-1]
+
+    types = []
+    while (c := s[i]) != ")":
+        if c == "[":
+            types[-1] = f"{types[-1]}[]"
+        elif c == "L":
+            j = s.find(";", i + 1)
+            types.append(s[i+1:j].replace("/", "."))
+            i = j
+        else:
+            types.append(JAVA_TYPES[c])
+        i += 1
+
+    return f"{name}({', '.join(types)})"
 
 
 def test_case_link(test_case):
-    return f"""<code>{test_case}</code>"""
+    return f"""{test_case}"""
 
 
 def location_link(location):
     path = location["file"]
-    return f"""<code>{os.path.basename(path)}</code>"""
+    return f"""{os.path.basename(path)}"""
 
 
 def describe(value):
     if "exceptionMessage" in value:
-        return f"""an exception of type <code>{value["typeName"]}</code> with message <code>{value["exceptionMessage"]}</code>"""
+        return f"""une exception du type <code>{value["typeName"]}</code> avec pour message <code>{value["exceptionMessage"]}</code>"""
     elif "literalValue" in value:
         return f"""<code>{value["literalValue"]}</code>"""
     elif "isNull" in value:
@@ -82,6 +112,7 @@ env = jinja2.Environment(
 env.filters["uncovered_link"] = uncovered_link
 env.filters["method_link"] = method_link
 env.filters["trim_package"] = trim_package
+env.filters["parse_signature"] = parse_signature
 env.filters["test_case_link"] = test_case_link
 env.filters["location_link"] = location_link
 env.filters["describe"] = describe
@@ -119,7 +150,11 @@ def run_reneri():
             pass  # ignore
         shutil.copy2(os.path.join(report_path, name), "target")
 
-    shutil.rmtree("target/reneri")
+    try:
+        shutil.rmtree("target/reneri")
+    except FileNotFoundError:
+        pass  # ignore
+
     subprocess.run(["mvn",
         "eu.stamp-project:reneri:observeMethods",
         "eu.stamp-project:reneri:observeTests",

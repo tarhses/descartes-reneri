@@ -105,15 +105,15 @@
     <span id="index"></span>
     <button id="next">🠖</button>
   </div>
-{% for method in uncovered %}
-  <div class="card">
-  {% include "uncovered_fr.html.j2" %}
-  </div>
-{% endfor %}
 {% for h in hints %}
   <div class="card">
   {% set mutation, hint, diff = h.mutation, h.hint, h.diff %}
   {% include "hint_fr.html.j2" %}
+  </div>
+{% endfor %}
+{% for method in uncovered %}
+  <div class="card">
+  {% include "uncovered_fr.html.j2" %}
   </div>
 {% endfor %}
 </body>

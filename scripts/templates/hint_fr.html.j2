@@ -1,6 +1,8 @@
-  <h2>{{ mutation|method_link }}</h2>
-  <p class="issue">
-    Le corps de la méthode {{ mutation|method_link }} a été
+  <h2><code>{{ mutation|method_link }}</code></h2>
+  <p class="hint issue">
+    Le corps de la méthode
+    <code>{{ mutation|method_link }}</code>
+    a été
 {% if mutation.mutator == 'void' %}
     supprimé.
 {% else %}
@@ -13,18 +15,18 @@
 {% endif %}
     Pourtant,
 {% if mutation.tests|length == 1 %}
-    le test {{ mutation.tests[0]|test_case_link }} n'a pas échoué.
+    le test <code>{{ mutation.tests[0]|test_case_link }}</code> n'a pas échoué.
 {% else %}
     aucun des tests suivants n'a échoué&nbsp;:
     <ul>
   {% for test in mutation.tests %}
-      <li>{{ test|test_case_link }}</li>
+      <li><code>{{ test|test_case_link }}</code></li>
   {% endfor %}
     </ul>
 {% endif %}
   </p>
 {% if hint.type == 'execution' %}
-  <p class="diagnosis">
+  <p class="execution diagnosis">
     Exécuter les tests avec la méthode modifiée ou avec la méthode originale ne
     provoque aucune différence observable dans l'état du programme.
   </p>
@@ -43,10 +45,10 @@
   </p>
 {% elif hint.type == 'observation' %}
   {% set location = hint.location %}
-  <p class="diagnosis">
+  <p class="observation diagnosis">
     Il est possible d'observer une différence dans l'état du programme selon
     que l'on utilise la méthode originale ou la méthode modifiée.
-    Cette différence se situe dans {{ location|location_link }}
+    Cette différence se situe dans <code>{{ location|location_link }}</code>
   {% if location.from.line == location.to.line %}
     à la ligne {{ location.from.line }}
   {% else %}
@@ -82,14 +84,14 @@
     Voici la liste des méthodes que vous pourriez appeler pour ce faire&nbsp;:
     <ul>
       {% for method in hint.targets %}
-      <li>{{ method|trim_package }}</li>
+      <li><code>{{ method|trim_package|parse_signature }}</code></li>
       {% endfor %}
     </ul>
     {% endif %}
   </p>
   {% endif %}
 {% elif hint.type == 'infection' %}
-  <p class="diagnosis">
+  <p class="infection diagnosis">
     Il est possible d'observer une différence dans l'état du programme selon
     que l'on utilise la méthode originale ou la méthode modifiée.
     Cette différence est observable dans une méthode mais pas dans les tests
