@@ -2,7 +2,7 @@
 
 # This script must be used in a base directory that contains Reneri and the SUT
 
-# Install SDKMAN! (Java, Maven, and Reneri)
+# Install SDKMAN! (Java, Maven) and Reneri
 cd descartes-reneri
 curl -s https://get.sdkman.io | bash
 source ~/.sdkman/bin/sdkman-init.sh

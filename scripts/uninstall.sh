@@ -2,7 +2,8 @@
 
 # This script must be used in a base directory that contains Reneri
 
-# Uninstall SDKMAN!
+# Uninstall Reneri and SDKMAN!
+rm -rf ~/.m2/repository/eu/stamp-project/reneri
 rm -rf ~/.sdkman
 
 # Uninstall Python dependencies
