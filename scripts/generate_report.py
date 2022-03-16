@@ -103,7 +103,7 @@ def ordinal(value):
 
 
 env = jinja2.Environment(
-    loader=jinja2.loaders.PackageLoader("generate_reports"),
+    loader=jinja2.loaders.PackageLoader("generate_report"),
     autoescape=jinja2.select_autoescape(),
     trim_blocks=True,
     lstrip_blocks=True,

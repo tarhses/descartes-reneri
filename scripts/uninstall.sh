@@ -8,3 +8,4 @@ rm -rf ~/.sdkman
 # Uninstall Python dependencies
 cd descartes-reneri/scripts
 pip3 uninstall -r requirements.txt -y
+cd ../..
