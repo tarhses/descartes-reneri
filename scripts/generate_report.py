@@ -59,21 +59,25 @@ def trim_package(s: str):
     return f"""{match.group()}"""
 
 
-def parse_signature(s: str):
-    i = s.find("(") + 1
-    name = s[:i-1]
+def parse_signature(s):
+    i = s.find("(")
+    name = s[:i]
 
+    i += 1
+    type_ = ""
     types = []
     while (c := s[i]) != ")":
-        if c == "[":
-            types[-1] = f"{types[-1]}[]"
-        elif c == "L":
-            j = s.find(";", i + 1)
-            types.append(s[i+1:j].replace("/", "."))
-            i = j
-        else:
-            types.append(JAVA_TYPES[c])
         i += 1
+        if c == "[":
+            type_ += "[]"
+        elif c == "L":
+            j = s.find(";", i)
+            types.append(f"{s[i:j].replace('/', '.')}{type_}")
+            type_ = ""
+            i = j + 1
+        else:
+            types.append(f"{JAVA_TYPES[c]}{type_}")
+            type_ = ""
 
     return f"{name}({', '.join(types)})"
 
