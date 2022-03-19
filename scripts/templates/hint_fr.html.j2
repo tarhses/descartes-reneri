@@ -112,7 +112,7 @@
     {% elif pointcut.that %}
     l'objet sur lequel la méthode est appelée
     {% else %}
-    l'argument n&deg;{{ pointcut.argument + 1 }}
+    l'argument n&deg;{{ pointcut.argument }}
     {% endif %}
     était {{ diff.expected|describe }} avec la méthode originale, alors qu'elle
     vaut {{ diff.observed|describe }} avec la méthode modifiée.
